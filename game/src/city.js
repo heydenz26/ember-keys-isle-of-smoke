@@ -1,44 +1,334 @@
-// EMBER KEYS — city.js : island data, districts, seeded generation
-function createSeededRng(seed){let s=seed>>>0;return function nextRandom(){s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
-const WORLD_SIZE=1200;
-const MARINA_INLET={x0:520,y0:440,x1:860,y1:605};
-const ROAD_COORDS=[100,300,500,700,900,1100];
-const DISTRICTS=[
- {name:"Ember Key Downtown",short:"EMBER KEY DOWNTOWN",x0:350,y0:0,x1:850,y1:420,ground:"#5a5f6b",friend:"NEUTRAL",score:58},
- {name:"Sunken Gardens Marina",short:"SUNKEN GARDENS MARINA",x0:350,y0:420,x1:850,y1:760,ground:"#7a6a52",friend:"FRIENDLY",score:74},
- {name:"Cinder Key",short:"CINDER KEY",x0:850,y0:0,x1:1200,y1:500,ground:"#6b5548",friend:"HOSTILE",score:22},
- {name:"Neon Mile",short:"NEON MILE",x0:0,y0:0,x1:350,y1:500,ground:"#4f4a63",friend:"NEUTRAL",score:51},
- {name:"Gator Hammock",short:"GATOR HAMMOCK",x0:0,y0:760,x1:500,y1:1200,ground:"#3f5a3a",friend:"NEUTRAL",score:44},
- {name:"Airstrip Cay",short:"AIRSTRIP CAY",x0:500,y0:900,x1:1200,y1:1200,ground:"#8a7f5f",friend:"FRIENDLY",score:68},
- {name:"Lighthouse Point",short:"LIGHTHOUSE POINT",x0:850,y0:500,x1:1200,y1:900,ground:"#6a7a72",friend:"FRIENDLY",score:71}
+// Ember Keys — Isle of Smoke
+// city.js — world definition: seeded RNG, island layout, road network,
+// seven districts, buildings, props, parked cars and collision helpers.
+// Written from scratch for this build. No external libraries.
+
+// ---------------------------------------------------------------------------
+// Seeded random number generator (mulberry32). The whole island is derived
+// from one seed so composed screenshot scenes are perfectly reproducible.
+// ---------------------------------------------------------------------------
+export function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function next() {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function hashSeedFromString(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// ---------------------------------------------------------------------------
+// World constants. The island is a rectangle of land surrounded by water.
+// Roads form a regular grid; city blocks sit between the roads and hold the
+// buildings. Two bridges leave the island to the north and south edges so
+// the shoreline reads clearly in the cover shot.
+// ---------------------------------------------------------------------------
+export const WORLD = {
+  width: 4800,
+  height: 3600,
+  waterMargin: 420, // water band around the land mass
+  roadHalf: 46, // half width of a road surface
+  sidewalk: 14, // sidewalk band on each side of a road
+};
+
+export const V_ROADS = [520, 1120, 1720, 2320, 2920, 3520, 4120];
+export const H_ROADS = [460, 1060, 1660, 2260, 2860];
+
+// District definitions: name, tint, flavour line, and the rectangle (in
+// world coordinates) the district occupies. Seven districts, each with its
+// own ground tint and building palette so the minimap reads at a glance.
+export const DISTRICTS = [
+  {
+    id: 'emberport',
+    name: 'Emberport',
+    tag: 'Docks & cranes',
+    x: 0, y: 2260, w: 2320, h: 1340,
+    ground: '#5d6b5a', roofA: '#8a5a44', roofB: '#6e4634',
+  },
+  {
+    id: 'smokestack',
+    name: 'Smokestack Row',
+    tag: 'Foundries & ash',
+    x: 2320, y: 2260, w: 2480, h: 1340,
+    ground: '#6b6257', roofA: '#7d4b3a', roofB: '#5c3a2e',
+  },
+  {
+    id: 'oldmarket',
+    name: 'Old Market',
+    tag: 'Stalls & alleys',
+    x: 0, y: 1060, w: 1720, h: 1200,
+    ground: '#6f6a55', roofA: '#9c6b4f', roofB: '#7a5138',
+  },
+  {
+    id: 'glassmile',
+    name: 'Glass Mile',
+    tag: 'Towers & neon',
+    x: 1720, y: 1060, w: 1800, h: 1200,
+    ground: '#5f6d72', roofA: '#4f7d8c', roofB: '#3a5f6b',
+  },
+  {
+    id: 'cinderheights',
+    name: 'Cinder Heights',
+    tag: 'Hillside homes',
+    x: 3520, y: 1060, w: 1280, h: 1200,
+    ground: '#66755e', roofA: '#8f7a52', roofB: '#6f5c3a',
+  },
+  {
+    id: 'northgate',
+    name: 'Northgate',
+    tag: 'Civic quarter',
+    x: 0, y: 0, w: 2320, h: 1060,
+    ground: '#636e63', roofA: '#7c6a8a', roofB: '#5d4f6e',
+  },
+  {
+    id: 'kingsrow',
+    name: "King's Row",
+    tag: 'Casinos & clubs',
+    x: 2320, y: 0, w: 2480, h: 1060,
+    ground: '#6d6152', roofA: '#a05a6e', roofB: '#7d4356',
+  },
 ];
-function districtAt(x,y){for(const d of DISTRICTS){if(x>=d.x0&&x<d.x1&&y>=d.y0&&y<d.y1)return d;}return DISTRICTS[0];}
-const BUILDING_PALETTE=["#c96f3a","#d9a05a","#7fb3b0","#e8dcc3","#b85c5c","#5a7fa6","#e07a3f","#f2e6c9","#3f8f7a","#d96a8a"];
-const BUILDING_SIGNS=[{t:"HOTEL EMBER",c:"#ffd23e"},{t:"MARLIN SUITES",c:"#7fe7d2"},{t:"PALM COURT",c:"#ffb3c8"},{t:"EKPD PRECINCT",c:"#9fc2ff"},{t:"CAFE SOL",c:"#ffd98a"},{t:"BANCO ISLE",c:"#a8e6a1"},{t:"NEON ARCADE",c:"#ff9ff3"},{t:"PEARL HOTEL",c:"#ffe9b0"},{t:"MARINA INN",c:"#7fe7d2"},{t:"CINDER DEPOT",c:"#ffb340"}];
-function generateBuildings(seed){const rng=createSeededRng(seed);const out=[];let id=0;
- const inletEx={x0:MARINA_INLET.x0-6,y0:MARINA_INLET.y0-6,x1:MARINA_INLET.x1+6,y1:MARINA_INLET.y1+6};
- const apronEx={x0:514-6,y0:605-6,x1:866+6,y1:706+6};
- function rectsIntersect(ax0,ay0,ax1,ay1,b){return ax0<b.x1&&ax1>b.x0&&ay0<b.y1&&ay1>b.y0;}
- for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++){const ox=ROAD_COORDS[bx]+28,oy=ROAD_COORDS[by]+28;const n=2+Math.floor(rng()*3);
-  for(let k=0;k<n;k++){const w=34+rng()*44,d=34+rng()*44;const bx2=ox+(k%2)*78+rng()*10,by2=oy+Math.floor(k/2)*82+rng()*8;const bh=36+rng()*130;const bcol=BUILDING_PALETTE[Math.floor(rng()*BUILDING_PALETTE.length)];const bseed=Math.floor(rng()*99999);
-   if(rectsIntersect(bx2,by2,bx2+w,by2+d,inletEx))continue;
-   if(rectsIntersect(bx2,by2,bx2+w,by2+d,apronEx))continue;
-   const nb={id:id++,x:bx2,y:by2,w:w,d:d,h:bh,color:bcol,seed:bseed,district:districtAt(ox,oy).name};
-   if(rng()<0.46){const sg=BUILDING_SIGNS[Math.floor(rng()*BUILDING_SIGNS.length)];nb.sign=sg.t;nb.signColor=sg.c;}
-   out.push(nb);}}
- return out;}
-function generatePalms(seed){const rng=createSeededRng(seed+7);const out=[];
- // boulevard rows flanking the x=500 road (west sidewalk, then east sidewalk)
- for(let i=0;i<26;i++)out.push({x:466+rng()*8,y:36+i*44+rng()*10,s:0.85+rng()*0.5,lean:rng()*0.24-0.12});
- for(let i=0;i<26;i++)out.push({x:528+rng()*8,y:58+i*44+rng()*10,s:0.85+rng()*0.5,lean:rng()*0.24-0.12});
- // south beach band (cover foreground silhouettes)
- for(let i=0;i<22;i++)out.push({x:36+i*54+rng()*18,y:1152+rng()*30,s:0.8+rng()*0.55,lean:rng()*0.3-0.15});
- // scattered island palms
- for(let i=0;i<26;i++)out.push({x:60+rng()*1080,y:60+rng()*1040,s:0.8+rng()*0.6,lean:rng()*0.3-0.15});
- return out;}
-function generateMarinaProps(){return{dock:{x:540,y:608,w:300,h:30},crates:[{x:566,y:652},{x:596,y:658},{x:806,y:650},{x:780,y:664},{x:836,y:668}],boats:[{x:612,y:520,rot:0.2,color:"#f2f2f2"},{x:706,y:478,rot:-0.15,color:"#e07a3f"},{x:792,y:548,rot:0.1,color:"#7fb3b0"}]};}
-const POIS=[{name:"Sunken Gardens Marina",x:620,y:580},{name:"Ember Key Downtown",x:600,y:220},{name:"Lighthouse Point",x:1020,y:700},{name:"Airstrip Cay",x:850,y:1050},{name:"Neon Mile",x:175,y:250}];
-const SPAWNS={player:{x:600,y:540,heading:0},car:{x:612,y:520,heading:0},marina:{x:620,y:580},downtown:{x:600,y:300}};
-const CITY_DATA={buildings:generateBuildings(1337),palms:generatePalms(1337),marina:generateMarinaProps()};
-function isBlockedByBuilding(x,y){for(const b of CITY_DATA.buildings){if(x>b.x-4&&x<b.x+b.w+4&&y>b.y-4&&y<b.y+b.d+4)return true;}return false;}
-function isOnRoad(x,y){for(const c of ROAD_COORDS){if(Math.abs(x-c)<26||Math.abs(y-c)<26)return true;}return false;}
+
+export function districtAt(x, y) {
+  for (const d of DISTRICTS) {
+    if (x >= d.x && x < d.x + d.w && y >= d.y && y < d.y + d.h) return d;
+  }
+  return DISTRICTS[0];
+}
+
+// ---------------------------------------------------------------------------
+// Road helpers. A point is "on a road" when it is within roadHalf of any
+// grid line and inside the island bounds (with a small apron at the edges).
+// ---------------------------------------------------------------------------
+export function nearestVerticalRoad(x) {
+  let best = V_ROADS[0];
+  let bestDist = Infinity;
+  for (const rx of V_ROADS) {
+    const d = Math.abs(x - rx);
+    if (d < bestDist) { bestDist = d; best = rx; }
+  }
+  return best;
+}
+
+export function nearestHorizontalRoad(y) {
+  let best = H_ROADS[0];
+  let bestDist = Infinity;
+  for (const ry of H_ROADS) {
+    const d = Math.abs(y - ry);
+    if (d < bestDist) { bestDist = d; best = ry; }
+  }
+  return best;
+}
+
+export function isOnRoad(x, y) {
+  if (x < -80 || y < -80 || x > WORLD.width + 80 || y > WORLD.height + 80) return false;
+  for (const rx of V_ROADS) if (Math.abs(x - rx) <= WORLD.roadHalf) return true;
+  for (const ry of H_ROADS) if (Math.abs(y - ry) <= WORLD.roadHalf) return true;
+  return false;
+}
+
+export function isOnSidewalk(x, y) {
+  const band = WORLD.roadHalf + WORLD.sidewalk;
+  for (const rx of V_ROADS) {
+    const d = Math.abs(x - rx);
+    if (d > WORLD.roadHalf && d <= band) return true;
+  }
+  for (const ry of H_ROADS) {
+    const d = Math.abs(y - ry);
+    if (d > WORLD.roadHalf && d <= band) return true;
+  }
+  return false;
+}
+
+export function isWater(x, y) {
+  return x < 0 || y < 0 || x > WORLD.width || y > WORLD.height;
+}
+
+// Intersections of the grid — traffic cars pick routes through these.
+export function intersections() {
+  const list = [];
+  for (const rx of V_ROADS) {
+    for (const ry of H_ROADS) list.push({ x: rx, y: ry });
+  }
+  return list;
+}
+
+// ---------------------------------------------------------------------------
+// Building generation. Each city block (the rectangle between neighbouring
+// roads) gets a small cluster of buildings with a gap for an alley. Every
+// building stores its footprint, height tier, roof colour and a few window
+// rows so the renderer can shade it without extra random calls per frame.
+// ---------------------------------------------------------------------------
+export function buildCity(seed) {
+  const rng = mulberry32(seed);
+  const buildings = [];
+  const props = [];
+  const parkedSpots = [];
+
+  const xEdges = [-40, ...V_ROADS, WORLD.width + 40];
+  const yEdges = [-40, ...H_ROADS, WORLD.height + 40];
+
+  for (let bi = 0; bi < xEdges.length - 1; bi++) {
+    for (let bj = 0; bj < yEdges.length - 1; bj++) {
+      const blockX0 = xEdges[bi] + WORLD.roadHalf + WORLD.sidewalk + 10;
+      const blockX1 = xEdges[bi + 1] - WORLD.roadHalf - WORLD.sidewalk - 10;
+      const blockY0 = yEdges[bj] + WORLD.roadHalf + WORLD.sidewalk + 10;
+      const blockY1 = yEdges[bj + 1] - WORLD.roadHalf - WORLD.sidewalk - 10;
+      const bw = blockX1 - blockX0;
+      const bh = blockY1 - blockY0;
+      if (bw < 120 || bh < 120) continue;
+
+      const district = districtAt((blockX0 + blockX1) / 2, (blockY0 + blockY1) / 2);
+      const cols = bw > 420 ? 2 : 1;
+      const rows = bh > 420 ? 2 : 1;
+      const cellW = bw / cols;
+      const cellH = bh / rows;
+
+      for (let cx = 0; cx < cols; cx++) {
+        for (let cy = 0; cy < rows; cy++) {
+          if (rng() < 0.12) continue; // empty lot / small plaza
+          const pad = 16 + rng() * 14;
+          const w = cellW - pad * 2;
+          const h = cellH - pad * 2;
+          if (w < 60 || h < 60) continue;
+          const tier = rng();
+          const heightTier = tier < 0.45 ? 1 : tier < 0.8 ? 2 : 3;
+          buildings.push({
+            x: blockX0 + cx * cellW + pad,
+            y: blockY0 + cy * cellH + pad,
+            w, h,
+            heightTier,
+            roof: rng() < 0.5 ? district.roofA : district.roofB,
+            wall: shadeWall(district.roofA, rng()),
+            district: district.id,
+            windowsAcross: Math.max(2, Math.floor(w / 34)),
+            windowsDown: Math.max(2, Math.floor(h / 34)),
+            seed: Math.floor(rng() * 1e9),
+          });
+        }
+      }
+
+      // Street props: lamps and crates near block corners.
+      const propCount = 2 + Math.floor(rng() * 3);
+      for (let p = 0; p < propCount; p++) {
+        props.push({
+          x: blockX0 + rng() * bw,
+          y: blockY0 + (rng() < 0.5 ? -6 : bh + 6),
+          kind: rng() < 0.6 ? 'lamp' : 'crate',
+        });
+      }
+
+      // Parked car spots hug the block edges, nose along the road.
+      if (rng() < 0.85) {
+        const side = Math.floor(rng() * 4);
+        let spot;
+        if (side === 0) spot = { x: blockX0 + bw * (0.3 + rng() * 0.4), y: blockY0 - 26, angle: Math.PI / 2 };
+        else if (side === 1) spot = { x: blockX0 + bw * (0.3 + rng() * 0.4), y: blockY1 + 26, angle: Math.PI / 2 };
+        else if (side === 2) spot = { x: blockX0 - 26, y: blockY0 + bh * (0.3 + rng() * 0.4), angle: 0 };
+        else spot = { x: blockX1 + 26, y: blockY0 + bh * (0.3 + rng() * 0.4), angle: 0 };
+        parkedSpots.push(spot);
+      }
+    }
+  }
+
+  // Palm-like ember trees scattered on the grass verges.
+  for (let i = 0; i < 90; i++) {
+    const x = rng() * WORLD.width;
+    const y = rng() * WORLD.height;
+    if (!isOnRoad(x, y) && !isOnSidewalk(x, y)) {
+      props.push({ x, y, kind: 'tree', seed: Math.floor(rng() * 1e9) });
+    }
+  }
+
+  // Bridges: causeways crossing the water at the middle vertical road,
+  // north and south, drawn as decks over the water band.
+  const bridges = [
+    { x: 2320 - 70, y: -WORLD.waterMargin, w: 140, h: WORLD.waterMargin },
+    { x: 2320 - 70, y: WORLD.height, w: 140, h: WORLD.waterMargin },
+    { x: -WORLD.waterMargin, y: 1660 - 70, w: WORLD.waterMargin, h: 140 },
+    { x: WORLD.width, y: 1660 - 70, w: WORLD.waterMargin, h: 140 },
+  ];
+
+  return { buildings, props, parkedSpots, bridges };
+}
+
+function shadeWall(roofHex, t) {
+  // Derive a wall tone from the roof colour by darkening it a touch.
+  const n = parseInt(roofHex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, ((n >> 16) & 255) - 26 - Math.floor(t * 18)));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 255) - 26 - Math.floor(t * 18)));
+  const b = Math.max(0, Math.min(255, (n & 255) - 22 - Math.floor(t * 14)));
+  return `rgb(${r},${g},${b})`;
+}
+
+// ---------------------------------------------------------------------------
+// Collision: axis-aligned building rectangles. Entities test a point (with
+// a radius) against every building; the city is small enough that a linear
+// scan with an early-out is fine and keeps the code easy to audit.
+// ---------------------------------------------------------------------------
+export function collideBuildings(buildings, x, y, radius) {
+  for (const b of buildings) {
+    if (
+      x + radius > b.x && x - radius < b.x + b.w &&
+      y + radius > b.y && y - radius < b.y + b.h
+    ) {
+      return b;
+    }
+  }
+  return null;
+}
+
+export function resolveBuildingCollision(buildings, ent, radius) {
+  const hit = collideBuildings(buildings, ent.x, ent.y, radius);
+  if (!hit) return false;
+  // Push out along the smallest penetration axis.
+  const left = ent.x + radius - hit.x;
+  const right = hit.x + hit.w - (ent.x - radius);
+  const top = ent.y + radius - hit.y;
+  const bottom = hit.y + hit.h - (ent.y - radius);
+  const min = Math.min(left, right, top, bottom);
+  if (min === left) ent.x = hit.x - radius;
+  else if (min === right) ent.x = hit.x + hit.w + radius;
+  else if (min === top) ent.y = hit.y - radius;
+  else ent.y = hit.y + hit.h + radius;
+  return true;
+}
+
+// Clamp an entity inside the playable shoreline (bridges allow a little
+// overshoot so the player can drive to the island edge and look out).
+export function clampToIsland(ent, margin) {
+  const m = margin ?? 24;
+  ent.x = Math.max(-WORLD.waterMargin + 60, Math.min(WORLD.width + WORLD.waterMargin - 60, ent.x));
+  ent.y = Math.max(-WORLD.waterMargin + 60, Math.min(WORLD.height + WORLD.waterMargin - 60, ent.y));
+  if (ent.x < -m || ent.x > WORLD.width + m || ent.y < -m || ent.y > WORLD.height + m) {
+    // Off the bridges and into the water: push back to the shoreline.
+    ent.x = Math.max(0, Math.min(WORLD.width, ent.x));
+    ent.y = Math.max(0, Math.min(WORLD.height, ent.y));
+    return true;
+  }
+  return false;
+}
+
+// Palette of civilian car paint jobs used across traffic and parked cars.
+export const CAR_PAINTS = [
+  '#c8452c', '#2c6ec8', '#e0a51f', '#3fae6a', '#e8e4da', '#30343c',
+  '#7a3fa0', '#c86a9a', '#4a90a4', '#8c8f96', '#b3541e', '#274e13',
+];
+
+export const CAR_MODELS = [
+  { name: 'Ember Coupe', len: 52, wid: 26, topSpeed: 300 },
+  { name: 'Harbour Sedan', len: 58, wid: 28, topSpeed: 265 },
+  { name: 'Dune Buggy', len: 46, wid: 27, topSpeed: 285 },
+  { name: 'Cargo Van', len: 64, wid: 30, topSpeed: 220 },
+  { name: 'Row Taxi', len: 56, wid: 28, topSpeed: 255 },
+];
