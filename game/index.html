@@ -1,37 +1,16 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ember Keys — Isle of Smoke</title><link rel="stylesheet" href="style.css"></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember Keys — Isle of Smoke</title>
+<link rel="stylesheet" href="style.css">
+</head>
 <body>
-<canvas id="game" width="1280" height="720" aria-label="Ember Keys open world game canvas"></canvas>
-<div id="hud" class="hidden">
- <div id="missionPanel" class="panel"><div class="mpHead"><h3 id="missionTitle">SHRIMP ON THE RUN</h3><span id="timerChip">⏱ 2:47</span></div><div class="stage" id="missionStage">STAGE 1/4</div><div id="stageSegs"><i></i><i></i><i></i><i></i></div><p id="missionObjective">Load crates</p><p class="next" id="missionNext">NEXT</p><p id="missionDist" style="font-weight:800">0 m</p></div>
- <div id="ekpdPanel" class="panel"><h4>EKPD RESPONSE · <span id="ekpdCount">5 UNITS</span></h4><div id="ekpdList"></div></div>
- <div id="banner" class="panel"><b id="districtName">EMBER KEY DOWNTOWN</b><span id="districtFriend">NEUTRAL · 58</span></div>
- <div id="topRight" class="panel"><div class="big"><span id="clockText">18:45</span> &nbsp; <span id="cashText">$1,250</span></div><div id="wantedStars"></div><div id="airUnitLine" class="airunit hidden">AIR UNIT DEPLOYED</div><div style="font-weight:800;margin-top:4px">Smuggler</div><div class="rankbar"><i style="width:62%"></i></div><div style="font-size:13px">RANK: SMUGGLER · next: Captain</div></div>
- <div id="weapons" class="panel"><div style="font-weight:900;color:#7fe7d2">WEAPONS</div><div id="weaponList"></div></div>
- <div id="crew"><div id="crewList"></div></div>
- <div id="radioBar" class="panel">EMBER FM 98.4 · Island Pop</div>
- <div id="dialogue" class="panel"><div id="dialogueFace">P</div><div class="dlgBody"><b id="dialogueWho">Pearl Castellanos</b><span id="dialogueRole">WHEELMAN · CREW</span><p id="dialogueText"></p></div></div>
- <div id="minimapWrap" class="panel" style="padding:8px"><canvas id="minimap" width="424" height="300"></canvas><div style="font-size:13px;font-weight:700;margin-top:4px">ISLAND MAP · N up · Tab phone</div></div>
- <div id="vitals" class="panel"><div id="healthText" style="font-weight:800">Health 95</div><div class="bar"><i id="healthFill" style="background:#3ddc84;width:95%"></i></div><div id="armourText" style="font-weight:800">Armour 40</div><div class="bar"><i id="armourFill" style="background:#4da3ff;width:40%"></i></div></div>
- <div id="vehicleBlock" class="panel"><div id="vehicleName" style="font-weight:900">RUNNER GT</div><div id="vehicleCond" style="font-size:14px">CONDITION 84%</div><div class="speed" id="speedText">88 km/h</div></div>
- <div id="phoneBar" class="panel hidden">PHONE · Pearl · Map · Radio · Save — Tab to close</div>
- <div id="interactChip" class="hidden"><span class="key">E</span> TAKE THE RUNNER GT</div>
-</div>
-<div id="titleScreen" class="hidden">
- <div class="titleBox"><h1>EMBER KEYS</h1><h2>ISLE OF SMOKE</h2>
- <div class="menuList"><div class="sel">CONTINUE</div><div>NEW GAME</div><div>LOAD GAME</div><div>SETTINGS</div></div>
- <p style="font-size:16px;font-weight:700;text-shadow:0 2px 6px #000;max-width:340px">Play smuggler Jude. Run shrimp, dodge the EKPD, build your crew across seven districts.</p></div>
- <div id="titleSlots"></div>
- <div id="titleFooter">An original open-world smuggling story · Keyboard &amp; mouse · WASD drive · E interact · Tab phone</div>
-</div>
-<div id="pauseMenu" class="hidden"><div class="sheet">
- <header><h1>EMBER KEYS</h1><div style="font-size:22px;font-weight:900">$1,250</div></header>
- <div class="tabs"><span>MAP</span><span>STORY</span><span class="on">STATS</span><span>CREW</span><span>SETTINGS</span><span>SAVE</span></div>
- <div class="pmCols">
-  <div class="pmCol" style="width:26%"><h3>COMPLETION</h3><div class="ringWrap"><div class="ring"><span>32%</span></div><div class="ringCap">COMPLETE<br><small>Act I — Shrimp Run<br>Seven districts open</small></div></div><div id="progressList"></div><h3 style="margin-top:8px">MISSION RATINGS</h3><div class="medals"><span class="medal gold">1<b>G</b></span><span class="medal silver">2<b>S</b></span><span class="medal gold">3<b>G</b></span><span class="medal bronze">4<b>B</b></span><span class="medal silver">5<b>S</b></span><span class="medal none">6<b>–</b></span></div><h3 style="margin-top:8px">ACTIVITIES</h3><div id="activityList"></div><p class="actNames">Neon Mile Sprint · Lighthouse Loop GP · Harbour Leap · +10 more</p></div>
-  <div class="pmCol" style="flex:1"><h3>ISLAND MAP</h3><canvas id="bigMap" width="1040" height="640"></canvas><p class="mapCaption">Route: Shrimp Run — marina pickup, Sunken Gardens → Cinder Key drop · 0.79 km</p><div class="mapkey"><b>MAP KEY</b><span><i style="background:#ffb340">R</i> Race</span><span><i style="background:#7fe7d2">P</i> Pickup</span><span><i style="background:#ff9ff3">S</i> Stunt</span><span><i style="background:#a8e6a1">H</i> Safehouse</span><span><i style="background:#ff8c1a">▲</i> You</span><span><i style="background:#4da3ff">●</i> EKPD</span></div></div>
-  <div class="pmCol" style="width:30%"><h3>CAREER · RANK: SMUGGLER</h3><div class="rankCard"><div class="rankTop"><b>RANK 4 · SMUGGLER</b><span>1,675 / 2,200 RP</span></div><div class="bar"><i style="background:linear-gradient(90deg,#ffb340,#ff6a3d);width:62%"></i></div><p>Next: Captain — finish Shrimp Run stage 4</p></div><div class="statgrid" id="careerGrid"></div><h3 style="margin-top:12px">SAVE SLOTS</h3><div id="menuSlots" style="display:flex;flex-direction:column;gap:8px"></div></div>
- </div></div></div>
-<script src="src/city.js"></script><script src="src/render.js"></script><script src="src/hud.js"></script><script src="src/missions.js"></script><script src="src/game.js"></script>
-</body></html>
+<main id="stage">
+  <canvas id="game" width="1280" height="800"></canvas>
+  <noscript><p class="noscript">Ember Keys needs JavaScript enabled.</p></noscript>
+</main>
+<script type="module" src="src/game.js"></script>
+</body>
+</html>

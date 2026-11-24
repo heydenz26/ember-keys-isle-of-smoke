@@ -1,95 +1,28 @@
-*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#14101f;font-family:system-ui,Segoe UI,Roboto,sans-serif;color:#fff}
-#game{position:fixed;inset:0;width:100%;height:100%;display:block}
-.panel{background:rgba(10,14,22,.86);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:12px 14px;backdrop-filter:blur(4px)}
-.hidden{display:none!important}
-#hud{position:fixed;inset:0;pointer-events:none}
-#missionPanel{position:absolute;top:16px;left:16px;width:300px}
-#missionPanel h3{margin:0 0 4px;font-size:19px;letter-spacing:.4px;color:#ffb340}
-#missionPanel .stage{font-size:15px;font-weight:800;color:#7fe7d2}
-#missionPanel p{margin:5px 0;font-size:16px;line-height:1.35}
-#missionPanel .next{color:#ffd98a;font-weight:700}
-#ekpdPanel{position:absolute;top:196px;left:16px;width:300px}
-#ekpdPanel h4{margin:0 0 6px;font-size:16px;color:#ff7a6b}
-#ekpdPanel div{font-size:15px;line-height:1.5;font-weight:600}
-.ekrow{display:flex;align-items:center;gap:8px;padding:2px 0}
-.ekcall{font-weight:900;letter-spacing:.3px;min-width:74px}
-.ekdist{margin-left:auto;font-weight:800;color:#ffd98a}
-.chip{font-size:11px;font-weight:900;letter-spacing:.6px;padding:2px 8px;border-radius:6px;color:#10131a}
-.chip-ramming{background:#ff5147;color:#fff}.chip-pursuit{background:#ffb340}.chip-flanking{background:#4da3ff;color:#fff}.chip-roadblock{background:#ffd23e}
-.mpHead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-#timerChip{background:#ffb340;color:#14100a;font-weight:900;font-size:15px;padding:3px 10px;border-radius:8px;white-space:nowrap}
-#stageSegs{display:flex;gap:5px;margin:6px 0 2px}
-#stageSegs i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.22)}
-#stageSegs i.on{background:linear-gradient(90deg,#ffb340,#ff6a3d)}
-#dialogue{display:flex;gap:12px;align-items:center}
-#dialogueFace{width:52px;height:52px;flex:none;border-radius:10px;background:linear-gradient(160deg,#f2a03d,#c94f2e);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;border:2px solid rgba(255,255,255,.5)}
-#dialogueRole{display:block;font-size:11px;font-weight:800;letter-spacing:1px;color:#ffd98a}
-.dlgBody{min-width:0}
-#topRight{position:absolute;top:16px;right:16px;text-align:right;width:262px}
-#topRight .big{font-size:22px;font-weight:800}
-#wantedStars{font-size:26px;letter-spacing:3px;color:#ffd23e;text-shadow:0 2px 6px #000}
-#wantedStars .off{color:rgba(255,255,255,.28)}
-.airunit{color:#ff9f2e;font-weight:900;font-size:14px;letter-spacing:1px;margin-top:2px}
-.rankbar{height:10px;background:#333;border-radius:6px;margin-top:6px;overflow:hidden}.rankbar i{display:block;height:100%;background:linear-gradient(90deg,#ffb340,#ff6a3d)}
-#weapons{position:absolute;top:172px;right:16px;width:262px}
-#weapons div{font-size:15px;padding:5px 8px;border-radius:8px;font-weight:700}
-#weapons div.sel{background:#ffb340;color:#14100a}
-#crew{position:absolute;top:352px;right:16px;width:262px;display:flex;flex-direction:column;gap:8px}
-.crewcard{display:flex;gap:10px;align-items:center;background:rgba(10,14,22,.86);border-radius:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.2)}
-.avatar{width:40px;height:40px;border-radius:50%;background:#e07a1e;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:none}
-.crewcard b{font-size:14px;display:block}.crewcard span{font-size:13px;color:#cfe8e2}
-#banner{position:absolute;top:16px;left:50%;transform:translateX(-50%);text-align:center;padding:9px 22px}
-#banner b{font-size:19px;letter-spacing:.6px;display:block}#banner span{font-size:14px;color:#ffd98a;font-weight:700}
-#dialogue{position:absolute;bottom:118px;left:55%;transform:translateX(-50%);width:620px;max-width:56vw}
-#dialogue b{color:#7fe7d2;font-size:16px}#dialogue p{margin:4px 0 0;font-size:17px;line-height:1.4}
-#minimapWrap{position:absolute;left:16px;bottom:16px;width:212px}
-#minimap{width:212px;height:150px;border-radius:12px;background:#20302a;display:block}
-#vitals{position:absolute;left:240px;bottom:16px;width:220px}
-.bar{height:12px;background:#333;border-radius:6px;overflow:hidden;margin:4px 0 8px}.bar i{display:block;height:100%}
-#vehicleBlock{position:absolute;right:16px;bottom:16px;width:250px;text-align:right}
-#vehicleBlock .speed{font-size:34px;font-weight:900}
-#radioBar{position:absolute;right:16px;bottom:118px;font-size:15px;font-weight:700}
-#titleScreen,#pauseMenu{position:fixed;inset:0;pointer-events:auto}
-#titleScreen{background:linear-gradient(100deg,rgba(16,8,32,.55) 0%,rgba(16,8,32,.18) 34%,rgba(0,0,0,0) 55%)}
-#titleScreen .titleBox{position:absolute;top:30px;left:36px}
-#titleScreen h1{font-size:88px;margin:0;letter-spacing:1px;line-height:.95;font-weight:900;font-style:italic;background:linear-gradient(180deg,#ffe259 8%,#ffa751 45%,#ff5e62 78%,#d6336c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(70,16,40,.9)) drop-shadow(0 10px 22px rgba(0,0,0,.55))}
-#titleScreen h2{margin:6px 0 18px;font-size:27px;letter-spacing:9px;font-weight:900;color:#3ef2d4;text-shadow:0 2px 0 rgba(6,40,36,.9),0 4px 14px rgba(0,0,0,.7)}
-.menuList div{font-size:21px;font-weight:800;padding:10px 16px;border-radius:10px;margin:6px 0;background:rgba(10,14,22,.75);width:250px}
-.menuList div.sel{background:#ffb340;color:#14100a}
-#titleSlots{position:absolute;top:110px;right:28px;width:400px;display:flex;flex-direction:column;gap:10px}
-.slotcard{background:#0a0e16;border-radius:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.28);overflow:hidden}
-.slotcard b{font-size:15px;color:#ffd98a}.slotcard p{margin:2px 0 0;font-size:13px;line-height:1.3;color:#e8f2f0}
-#menuSlots .slotcard{position:relative;padding-right:84px}
-.saveBtn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:#ffb340;color:#14100a;border:0;border-radius:8px;font-weight:900;font-size:14px;padding:7px 14px;cursor:pointer}
-#interactChip{position:absolute;left:600px;top:474px;background:rgba(8,12,18,.94);border:2px solid #ffb340;border-radius:10px;padding:9px 16px 9px 10px;font-size:18px;font-weight:900;letter-spacing:.5px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 18px rgba(0,0,0,.5)}
-#interactChip .key{background:#ffb340;color:#14100a;border-radius:7px;font-size:19px;font-weight:900;padding:3px 11px}
-.ringWrap{display:flex;align-items:center;gap:12px;margin:2px 0 4px}
-.ring{width:72px;height:72px;flex:none;border-radius:50%;background:conic-gradient(#ffb340 0 32%,#2a3040 32% 100%);display:flex;align-items:center;justify-content:center}
-.ring span{background:#12161f;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#ffb340}
-.ringCap{font-size:16px;font-weight:900;line-height:1.25}.ringCap small{font-size:12px;font-weight:600;color:#cfe8e2}
-.medals{display:flex;gap:6px}
-.medal{width:36px;height:36px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:700;line-height:1.05;color:#14100a}
-.medal b{font-size:13px}
-.medal.gold{background:#ffb340}.medal.silver{background:#cfd6dd}.medal.bronze{background:#d08a4e}.medal.none{background:#2a3040;color:#8a94a3;border:1px dashed #5a6472}
-.actNames{font-size:10.5px;color:#cfe8e2;margin:4px 0 0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mapCaption{font-size:14px;font-weight:800;margin:6px 0 4px;background:rgba(255,179,64,.16);border-left:4px solid #ffb340;padding:5px 8px;border-radius:0 8px 8px 0}
-.mapkey{display:flex;flex-wrap:wrap;gap:5px 12px;align-items:center;font-size:12.5px;font-weight:700}
-.mapkey b{color:#7fe7d2;letter-spacing:.6px}
-.mapkey i{display:inline-flex;width:19px;height:19px;border-radius:50%;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:900;color:#10131a;margin-right:4px;vertical-align:-4px}
-.rankCard{background:rgba(255,179,64,.12);border:1px solid rgba(255,179,64,.45);border-radius:10px;padding:8px 10px;margin-bottom:8px}
-.rankTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.rankTop b{font-size:15px;color:#ffb340}.rankTop span{font-size:12px;font-weight:700;color:#cfe8e2}
-.rankCard p{margin:4px 0 0;font-size:12.5px;color:#e8f2f0}
-#titleFooter{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:15px;font-weight:600;text-shadow:0 2px 6px #000}
-#pauseMenu{background:rgba(8,10,16,.72)}
-#pauseMenu .sheet{position:absolute;inset:22px;background:rgba(12,16,24,.94);border-radius:18px;padding:10px 16px;display:flex;flex-direction:column}
-#pauseMenu header{display:flex;justify-content:space-between;align-items:center}
-#pauseMenu h1{font-size:28px;margin:0;color:#ffb340}
-.tabs{display:flex;gap:8px;margin:6px 0}.tabs span{padding:6px 12px;border-radius:9px;background:#232a38;font-weight:800;font-size:15px}.tabs span.on{background:#ffb340;color:#14100a}
-.pmCols{display:flex;gap:12px;flex:1;min-height:0}
-.pmCol{background:rgba(255,255,255,.06);border-radius:14px;padding:10px}
-.pmCol h3{margin:0 0 6px;font-size:16px;color:#7fe7d2}
-.prow{margin:3px 0;font-size:13.5px;font-weight:600}.prow .bar{margin-top:2px}
-.pmCol h3{margin-bottom:4px}
-#bigMap{width:100%;height:318px;background:#20302a;border-radius:12px}
-.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.statgrid div{background:rgba(255,255,255,.07);border-radius:10px;padding:6px}.statgrid b{font-size:17px;display:block}.statgrid span{font-size:11px;color:#cfe8e2}
-#phoneBar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:700}
+/* Ember Keys — Isle of Smoke: page chrome. The game itself is all canvas. */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #10141a;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+#stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 10px;
+}
+canvas#game {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: #274b63;
+}
+.noscript {
+  color: #f4f6f8;
+  text-align: center;
+}
